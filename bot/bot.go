@@ -18,10 +18,12 @@ func (bot *Bot) Serve(resp http.ResponseWriter, req *http.Request) {
 	update := telegram.ParseUpdate(body)
 
 	if update.Message.Reply.Id != 0 {
-		delay := parseDelay(update.Message.Text)
-		if delay > 0 {
+		delay, err := time.ParseDuration(update.Message.Text)
+		if delay > 0 && err == nil {
 			go bot.answer(update.Message.Chat.Id, "You will be notified after "+delay.String())
 			go bot.notify(update.Message.Chat.Id, update.Message.Reply.Id, "Message notification", delay)
+		} else {
+			go bot.answer(update.Message.Chat.Id, "Can't understand the delay, try something like 10s.")
 		}
 	}
 }
